@@ -43,14 +43,6 @@ function svgToPngDataUri(svgString: string, width: number, height: number): Prom
 
 const CustomEditorEvents = () => {
   const editor = useEditor();
-  
-  // You can add event listeners here if needed, for example:
-  // useEffect(() => {
-  //   const handleChange = () => console.log('Canvas changed');
-  //   editor.on('change', handleChange);
-  //   return () => editor.off('change', handleChange);
-  // }, [editor]);
-
   return null;
 }
 
@@ -96,14 +88,16 @@ export default function DoodleSolve() {
       const pngDataUri = await svgToPngDataUri(svgString, viewport.w, viewport.h);
       
       const solutionResult = await getSolution(pngDataUri);
-      setResult(solutionResult);
-
+      
       if (solutionResult.error) {
+         setResult({ error: solutionResult.error });
         toast({
           title: "Error",
           description: solutionResult.error,
           variant: "destructive"
         });
+      } else {
+        setResult(solutionResult);
       }
 
     } catch (error) {
@@ -131,9 +125,9 @@ export default function DoodleSolve() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       <div className="flex flex-col gap-4">
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden shadow-lg border-2 border-primary/20">
           <CardContent className="p-0">
-            <div className="w-full h-[50vh] min-h-[400px]">
+            <div className="w-full h-[60vh] min-h-[500px]">
               <Tldraw onMount={(editor) => setEditor(editor)}>
                 <CustomEditorEvents />
               </Tldraw>
@@ -141,11 +135,11 @@ export default function DoodleSolve() {
           </CardContent>
         </Card>
         <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={handleClear} disabled={isLoading}>
+          <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-8 rounded-full shadow-md">
             <Trash2 />
             Clear
           </Button>
-          <Button onClick={handleSolve} disabled={isLoading}>
+          <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-8 rounded-full shadow-md">
             <Wand />
             {isLoading ? 'Solving...' : 'Solve'}
           </Button>
