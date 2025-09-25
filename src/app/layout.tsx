@@ -2,6 +2,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter } from 'next/font/google';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import Header from '@/components/Header';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -21,8 +23,20 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU07ypzRB7/BocuzJxsSbGkTKpACTi4zGtcDTA2i2OHoxtl/pk1aeL4" crossOrigin="anonymous" />
       </head>
       <body className={`${inter.variable} font-body antialiased`}>
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="flex flex-col min-h-screen bg-background text-foreground">
+            <Header />
+            <main className="flex-grow p-4 sm:p-6 md:p-8">
+              {children}
+            </main>
+          </div>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
