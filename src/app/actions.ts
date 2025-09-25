@@ -1,7 +1,6 @@
 'use server';
 
-import { interpretDrawnEquation } from '@/ai/flows/interpret-drawn-equation';
-import { solveInterpretedEquation } from '@/ai/flows/solve-interpreted-equation';
+import { solveDrawnEquation } from '@/ai/flows/solve-drawn-equation';
 
 export interface SolutionResult {
   interpretedEquation?: string;
@@ -11,13 +10,11 @@ export interface SolutionResult {
 
 export async function getSolution(photoDataUri: string): Promise<SolutionResult> {
   try {
-    const { interpretedEquation } = await interpretDrawnEquation({ photoDataUri });
+    const { interpretedEquation, solutionLaTeX } = await solveDrawnEquation({ photoDataUri });
 
     if (!interpretedEquation || interpretedEquation.toLowerCase().includes('no equation found')) {
       return { error: 'Could not recognize an equation. Please draw more clearly.' };
     }
-
-    const { solutionLaTeX } = await solveInterpretedEquation({ interpretedEquation });
 
     return { interpretedEquation, solutionLaTeX };
   } catch (e) {
