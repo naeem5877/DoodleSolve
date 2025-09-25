@@ -18,15 +18,17 @@ function svgToPngDataUri(svgString: string, width: number, height: number): Prom
 
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = width * 2; // Use scale for better quality
-      canvas.height = height * 2;
+      const scale = 2; // Use scale for better quality
+      canvas.width = width * scale;
+      canvas.height = height * scale;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         reject(new Error('Could not get canvas context'));
         URL.revokeObjectURL(url);
         return;
       }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, width, height);
       const pngDataUri = canvas.toDataURL('image/png');
       URL.revokeObjectURL(url);
       resolve(pngDataUri);
@@ -40,6 +42,7 @@ function svgToPngDataUri(svgString: string, width: number, height: number): Prom
     img.src = url;
   });
 }
+
 
 const CustomEditorEvents = () => {
   const editor = useEditor();
@@ -59,7 +62,7 @@ export default function DoodleSolve() {
     if (shapes.length === 0) {
       toast({
         title: "Canvas is empty",
-        description: "Please draw an equation before solving.",
+        description: "Please draw something before solving.",
         variant: "destructive"
       });
       return;
@@ -75,9 +78,9 @@ export default function DoodleSolve() {
       }
       
       const svg = await editor.getSvg(shapes, {
-        scale: 2,
+        scale: 1,
         background: true,
-        darkMode: false,
+        darkMode: document.body.classList.contains('dark'),
       });
 
       if (!svg) {
@@ -135,12 +138,12 @@ export default function DoodleSolve() {
           </CardContent>
         </Card>
         <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-8 rounded-full shadow-md">
+          <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-8 rounded-full shadow-md transition-transform hover:scale-105">
             <Trash2 />
             Clear
           </Button>
-          <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-8 rounded-full shadow-md">
-            <Wand />
+          <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-8 rounded-full shadow-md transition-transform hover:scale-105 bg-gradient-to-r from-primary to-accent text-primary-foreground">
+            <Wand className="mr-2" />
             {isLoading ? 'Solving...' : 'Solve'}
           </Button>
         </div>
