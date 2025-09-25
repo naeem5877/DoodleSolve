@@ -19,7 +19,7 @@ export default function SolutionDisplay({ isLoading, result }: SolutionDisplayPr
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Interpreted Equation</CardTitle>
+            <CardTitle>Interpreted Drawing</CardTitle>
           </CardHeader>
           <CardContent>
             <Skeleton className="h-8 w-3/4" />
@@ -27,7 +27,7 @@ export default function SolutionDisplay({ isLoading, result }: SolutionDisplayPr
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Solution</CardTitle>
+            <CardTitle>Response</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Skeleton className="h-6 w-full" />
@@ -47,7 +47,7 @@ export default function SolutionDisplay({ isLoading, result }: SolutionDisplayPr
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Draw a math problem on the canvas and click &quot;Solve&quot; to see the magic happen.
+            Draw anything on the canvas and click &quot;Solve&quot; to see the magic happen.
           </p>
         </CardContent>
       </Card>
@@ -70,7 +70,7 @@ export default function SolutionDisplay({ isLoading, result }: SolutionDisplayPr
       {result.interpretedEquation && (
         <Card>
           <CardHeader>
-            <CardTitle>Interpreted Equation</CardTitle>
+            <CardTitle>Interpreted Drawing</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-lg font-mono bg-muted p-4 rounded-md">
@@ -82,7 +82,7 @@ export default function SolutionDisplay({ isLoading, result }: SolutionDisplayPr
       {result.solutionLaTeX && (
         <Card>
           <CardHeader>
-            <CardTitle>Solution Steps</CardTitle>
+            <CardTitle>Response</CardTitle>
           </CardHeader>
           <CardContent className="prose prose-lg max-w-none overflow-x-auto">
             <Latex>{result.solutionLaTeX}</Latex>

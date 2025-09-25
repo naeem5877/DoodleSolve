@@ -21,12 +21,12 @@ const SolveDrawnEquationInputSchema = z.object({
 export type SolveDrawnEquationInput = z.infer<typeof SolveDrawnEquationInputSchema>;
 
 const SolveDrawnEquationOutputSchema = z.object({
-  interpretedEquation: z
+  interpretedText: z
     .string()
-    .describe('The interpreted math or physics problem in a readable text format.'),
-  solutionLaTeX: z
+    .describe('The interpreted text or description of the drawing.'),
+  solution: z
     .string()
-    .describe('The detailed solution to the problem in LaTeX format.'),
+    .describe('A detailed response, explanation, or solution based on the drawing, in LaTeX format for equations or plain text for other queries.'),
 });
 export type SolveDrawnEquationOutput = z.infer<typeof SolveDrawnEquationOutputSchema>;
 
@@ -40,14 +40,18 @@ const prompt = ai.definePrompt({
   name: 'solveDrawnEquationPrompt',
   input: {schema: SolveDrawnEquationInputSchema},
   output: {schema: SolveDrawnEquationOutputSchema},
-  prompt: `You are an expert AI assistant that can solve math and physics problems from a drawing.
+  prompt: `You are an expert AI visual assistant.
 
   Your tasks are:
-  1.  Analyze the provided image which contains a handwritten or drawn problem.
-  2.  First, interpret the problem and state it clearly in the 'interpretedEquation' field. This should include all variables, numbers, and the question being asked. If the image does not contain a discernible problem, respond with 'No equation found'.
-  3.  Second, solve the problem, providing a detailed, step-by-step explanation. The final solution must be in LaTeX format for the 'solutionLaTeX' field. Handle unit conversions if necessary.
+  1.  Analyze the provided image which contains handwritten text, a drawing, or a problem.
+  2.  First, interpret the drawing and describe it clearly in the 'interpretedText' field.
+  3.  Second, provide a detailed response in the 'solution' field.
+      - If it's a math or physics problem, solve it with a step-by-step explanation in LaTeX format.
+      - If it's a question, answer it.
+      - If it's a statement or drawing, describe or comment on it.
+  4. If the image is unclear or empty, state that in the 'interpretedText' field.
 
-  Image of the problem: {{media url=photoDataUri}}
+  Image of the drawing: {{media url=photoDataUri}}
   `,
 });
 

@@ -10,13 +10,13 @@ export interface SolutionResult {
 
 export async function getSolution(photoDataUri: string): Promise<SolutionResult> {
   try {
-    const { interpretedEquation, solutionLaTeX } = await solveDrawnEquation({ photoDataUri });
+    const { interpretedText, solution } = await solveDrawnEquation({ photoDataUri });
 
-    if (!interpretedEquation || interpretedEquation.toLowerCase().includes('no equation found')) {
-      return { error: 'Could not recognize an equation. Please draw more clearly.' };
+    if (!interpretedText || interpretedText.toLowerCase().includes('unclear') || interpretedText.toLowerCase().includes('empty')) {
+      return { error: 'The drawing is unclear. Please draw more clearly.' };
     }
 
-    return { interpretedEquation, solutionLaTeX };
+    return { interpretedEquation: interpretedText, solutionLaTeX: solution };
   } catch (e) {
     console.error(e);
     const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred.';
