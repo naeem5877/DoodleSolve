@@ -10,18 +10,35 @@ import SolutionDisplay from './SolutionDisplay';
 import { Card, CardContent } from './ui/card';
 import { useToast } from '@/hooks/use-toast';
 
-function dataUrlToBlob(dataUrl: string) {
-  const arr = dataUrl.split(',');
-  if (arr.length < 2) {
-    return null;
-  }
-  const mimeArr = arr[0].match(/:(.*?);/);
-  if (!mimeArr || mimeArr.length < 2) {
-    return null;
-  }
-  const mime = mimeArr[1];
-  const buff = Buffer.from(arr[1], 'base64');
-  return new Blob([buff], { type: mime });
+function svgToPngDataUri(svgString: string, width: number, height: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width * 2; // Use scale for better quality
+      canvas.height = height * 2;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        URL.revokeObjectURL(url);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const pngDataUri = canvas.toDataURL('image/png');
+      URL.revokeObjectURL(url);
+      resolve(pngDataUri);
+    };
+
+    img.onerror = () => {
+      reject(new Error('Failed to load SVG image'));
+      URL.revokeObjectURL(url);
+    };
+
+    img.src = url;
+  });
 }
 
 const CustomEditorEvents = () => {
@@ -60,6 +77,11 @@ export default function DoodleSolve() {
     setResult(null);
 
     try {
+      const viewport = editor.getViewportPageBounds();
+      if (!viewport) {
+        throw new Error('Failed to get viewport bounds.');
+      }
+      
       const svg = await editor.getSvg(shapes, {
         scale: 2,
         background: true,
@@ -71,9 +93,9 @@ export default function DoodleSolve() {
       }
 
       const svgString = new XMLSerializer().serializeToString(svg);
-      const dataUri = `data:image/svg+xml;base64,${btoa(svgString)}`;
+      const pngDataUri = await svgToPngDataUri(svgString, viewport.w, viewport.h);
       
-      const solutionResult = await getSolution(dataUri);
+      const solutionResult = await getSolution(pngDataUri);
       setResult(solutionResult);
 
       if (solutionResult.error) {
