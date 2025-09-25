@@ -15,7 +15,7 @@ import { useTheme } from 'next-themes';
 function svgToPngDataUri(svgString: string, width: number, height: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-t' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -129,11 +129,11 @@ export default function DoodleSolve() {
   }, [editor]);
 
   return (
-    <div className={cn("grid grid-cols-1 items-start gap-8 transition-all duration-300", 
-      isFullscreen ? "lg:grid-cols-1" : "lg:grid-cols-2"
+    <div className={cn("grid grid-cols-1 md:grid-cols-2 items-start gap-8 transition-all duration-300", 
+      isFullscreen && "md:grid-cols-1"
     )}>
-      <div className={cn("flex flex-col gap-4 transition-all duration-300", 
-        isFullscreen ? "fixed inset-0 z-50 p-4 bg-background" : "relative"
+      <div className={cn("flex flex-col gap-4 transition-all duration-300 h-full", 
+        isFullscreen ? "md:col-span-1" : "md:col-span-1"
       )}>
         <Card className="overflow-hidden shadow-lg border-2 border-primary/20 flex-grow flex flex-col">
           <CardContent className="p-0 flex-grow">
@@ -160,7 +160,7 @@ export default function DoodleSolve() {
         </div>
       </div>
 
-      <div className={cn("w-full transition-opacity duration-300", isFullscreen ? "opacity-0 pointer-events-none" : "opacity-100")}>
+      <div className={cn("w-full transition-all duration-300", isFullscreen ? "md:hidden" : "md:block")}>
         <SolutionDisplay
           isLoading={isLoading}
           result={result}
