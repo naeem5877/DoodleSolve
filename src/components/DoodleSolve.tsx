@@ -53,12 +53,11 @@ const CustomEditorEvents = () => {
 
 export type AppMode = 'doodle' | 'llm';
 
-export default function DoodleSolve() {
+export default function DoodleSolve({ appMode }: { appMode: AppMode }) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [result, setResult] = useState<SolutionResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [appMode, setAppMode] = useState<AppMode>('doodle');
   const { toast } = useToast();
   const { theme } = useTheme();
 

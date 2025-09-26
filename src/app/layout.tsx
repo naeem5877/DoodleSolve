@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import Header from '@/components/Header';
+
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -30,10 +30,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex flex-col min-h-screen bg-background text-foreground">
-            <Header />
-            <main className="flex-grow p-4 sm:p-6 md:p-8">
-              {children}
-            </main>
+            {children}
           </div>
           <Toaster />
         </ThemeProvider>
