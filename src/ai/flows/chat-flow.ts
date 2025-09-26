@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 // Initialize Groq client
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || "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"
+  apiKey: process.env.GROQ_API_KEY
 });
 
 const ragData = {
