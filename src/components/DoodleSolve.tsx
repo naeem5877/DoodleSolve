@@ -16,7 +16,7 @@ import ChatView from './ChatView';
 function svgToPngDataUri(svgString: string, width: number, height: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-t' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -179,25 +179,6 @@ export default function DoodleSolve() {
 
       <div className={cn("transition-opacity duration-300", appMode === 'llm' ? 'opacity-100' : 'opacity-0 hidden')}>
         <ChatView />
-      </div>
-
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-2 p-1.5 bg-background/80 backdrop-blur-md rounded-full shadow-lg border">
-          <Button
-            variant={appMode === 'doodle' ? 'default' : 'ghost'}
-            className="rounded-full"
-            onClick={() => setAppMode('doodle')}
-          >
-            DoodleSolve
-          </Button>
-          <Button
-            variant={appMode === 'llm' ? 'default' : 'ghost'}
-            className="rounded-full"
-            onClick={() => setAppMode('llm')}
-          >
-            LLM Chat
-          </Button>
-        </div>
       </div>
     </>
   );

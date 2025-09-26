@@ -3,13 +3,18 @@
 /**
  * @fileOverview A flow to handle chat interactions for the Sylhet Technical School and College AI assistant.
  *
- * - getChatResponse - A function that handles the chat response generation.
+ * - getChatResponse - A function that handles the chat response generation using Groq API.
  * - ChatInput - The input type for the getChatResponse function.
  * - ChatOutput - The return type for the getChatResponse function.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import Groq from 'groq-sdk';
+import { z } from 'zod';
+
+// Initialize Groq client
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY || "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"
+});
 
 const ragData = {
     "hi": "Hello! I'm the Sylhet Technical School and College AI assistant. How can I help you today?",
@@ -33,36 +38,74 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 export async function getChatResponse(
   input: ChatInput
 ): Promise<ChatOutput> {
-  return chatFlow(input);
-}
+  try {
+    // Check if the user's prompt matches any RAG data
+    const userPromptLower = input.prompt.toLowerCase().trim();
+    
+    // Direct match check
+    if (ragData[userPromptLower as keyof typeof ragData]) {
+      return {
+        response: ragData[userPromptLower as keyof typeof ragData]
+      };
+    }
 
-const prompt = ai.definePrompt({
-  name: 'chatPrompt',
-  input: { schema: z.object({
-    prompt: ChatInputSchema.shape.prompt,
-    ragData: z.any(),
-  }) },
-  output: { schema: ChatOutputSchema },
-  prompt: `You are a helpful AI assistant for Sylhet Technical School and College.
-  
-  Use the following information to answer the user's question. If the question is not in the provided data, say that you do not have that information.
-  
-  Context:
-  {{#each ragData}}
-  - User asks: "{{@key}}" -> You respond: "{{this}}"
-  {{/each}}
-  
-  User's question: {{{prompt}}}`,
-});
+    // Partial match check for flexibility
+    for (const [key, value] of Object.entries(ragData)) {
+      if (userPromptLower.includes(key) || key.includes(userPromptLower)) {
+        return {
+          response: value
+        };
+      }
+    }
 
-const chatFlow = ai.defineFlow(
-  {
-    name: 'chatFlow',
-    inputSchema: ChatInputSchema,
-    outputSchema: ChatOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt({ ...input, ragData });
-    return output!;
+    // If no direct match, use Groq API
+    const systemPrompt = `You are a helpful AI assistant for Sylhet Technical School and College, created by Naeem Ahmed for an innovation project.
+
+Available information:
+${Object.entries(ragData).map(([key, value]) => `- When asked "${key}": ${value}`).join('\n')}
+
+If the user's question is not covered by the available information, politely say that you do not have that specific information about Sylhet Technical School and College, but offer to help with other questions you might be able to answer.
+
+Keep your responses helpful, friendly, and focused on the school context.`;
+
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt
+        },
+        {
+          role: "user",
+          content: input.prompt
+        }
+      ],
+      model: "llama-3.1-8b-instant", // Free Groq model - fast and efficient
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
+
+    const response = chatCompletion.choices[0]?.message?.content || 
+      "I apologize, but I'm having trouble processing your request right now. Please try again.";
+
+    return {
+      response: response
+    };
+
+  } catch (error) {
+    console.error('Error with Groq API:', error);
+    
+    // Fallback to basic RAG data matching if API fails
+    const userPromptLower = input.prompt.toLowerCase().trim();
+    for (const [key, value] of Object.entries(ragData)) {
+      if (userPromptLower.includes(key)) {
+        return {
+          response: value
+        };
+      }
+    }
+    
+    return {
+      response: "I'm sorry, I'm experiencing technical difficulties right now. Please try again later or contact the school directly for assistance."
+    };
   }
-);
+}
