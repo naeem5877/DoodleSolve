@@ -38,7 +38,10 @@ export async function getChatResponse(
 
 const prompt = ai.definePrompt({
   name: 'chatPrompt',
-  input: { schema: ChatInputSchema },
+  input: { schema: z.object({
+    prompt: ChatInputSchema.shape.prompt,
+    ragData: z.any(),
+  }) },
   output: { schema: ChatOutputSchema },
   prompt: `You are a helpful AI assistant for Sylhet Technical School and College.
   
