@@ -5,9 +5,10 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Bot, User, Send, CornerDownLeft, BrainCircuit } from 'lucide-react';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { Bot, User, Send, BrainCircuit } from 'lucide-react';
 import { getChatResponse } from '@/app/actions';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -48,13 +49,13 @@ export default function ChatView() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error fetching chat response:', error);
-      const errorMessage: Message = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' };
+      const errorMessage: Message = { role: 'assistant', content: '# Error\nSorry, I encountered an error. Please try again.' };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const handleSuggestionClick = async (suggestion: string) => {
     const userMessage: Message = { role: 'user', content: suggestion };
     setMessages((prev) => [...prev, userMessage]);
@@ -66,7 +67,7 @@ export default function ChatView() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error fetching chat response:', error);
-      const errorMessage: Message = { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' };
+      const errorMessage: Message = { role: 'assistant', content: '# Error\nSorry, I encountered an error. Please try again.' };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -109,9 +110,28 @@ export default function ChatView() {
                     : 'bg-muted rounded-bl-none'
                 )}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                {message.role === 'assistant' ? (
+                  <div className="text-sm leading-relaxed markdown-content">
+                    <ReactMarkdown
+                      components={{
+                        h1: ({ node, ...props }) => <h1 className="text-xl font-bold mt-2 mb-1" {...props} />,
+                        h2: ({ node, ...props }) => <h2 className="text-lg font-semibold mt-2 mb-1" {...props} />,
+                        strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
+                        em: ({ node, ...props }) => <em className="italic" {...props} />,
+                        ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-1" {...props} />,
+                        ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-1" {...props} />,
+                        li: ({ node, ...props }) => <li className="my-0.5" {...props} />,
+                        p: ({ node, ...props }) => <p className="my-0.5" {...props} />,
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                )}
               </div>
-               {message.role === 'user' && (
+              {message.role === 'user' && (
                 <Avatar className="w-8 h-8 border">
                   <AvatarFallback>
                     <User className="w-5 h-5" />
@@ -128,11 +148,11 @@ export default function ChatView() {
                 </AvatarFallback>
               </Avatar>
               <div className="max-w-md p-3 rounded-2xl bg-muted rounded-bl-none">
-                 <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="h-2 w-2 bg-primary rounded-full animate-bounce"></span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="h-2 w-2 bg-primary rounded-full animate-bounce"></span>
+                </div>
               </div>
             </div>
           )}
@@ -141,8 +161,12 @@ export default function ChatView() {
       <div className="px-4 pb-4">
         {messages.length === 0 && (
           <div className="grid grid-cols-2 gap-2 mb-2">
-              <Button variant="outline" size="sm" onClick={() => handleSuggestionClick("who made you?")}>who made you?</Button>
-              <Button variant="outline" size="sm" onClick={() => handleSuggestionClick("what is your purpose?")}>what is your purpose?</Button>
+            <Button variant="outline" size="sm" onClick={() => handleSuggestionClick("who made you?")}>
+              Who made you?
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleSuggestionClick("what is your purpose?")}>
+              What is your purpose?
+            </Button>
           </div>
         )}
         <form onSubmit={handleSubmit} className="relative">

@@ -17,12 +17,12 @@ const groq = new Groq({
 });
 
 const ragData = {
-    "hi": "Hello! I'm the Sylhet Technical School and College AI assistant. How can I help you today?",
-    "hello": "Hello! I'm the Sylhet Technical School and College AI assistant. How can I help you today?",
-    "who made you": "This AI was created by Naeem Ahmed for an innovation project at Sylhet Technical School and College.",
-    "who created you": "This AI was developed by Naeem Ahmed as part of an innovation project at Sylhet Technical School and College.",
-    "who are you": "I'm an AI assistant for Sylhet Technical School and College, created by Naeem Ahmed for an innovation project.",
-    "what is your purpose": "I'm designed to help students and visitors get information about Sylhet Technical School and College, created by Naeem Ahmed as an innovation project."
+  "hi": "# Welcome to Sylhet Technical School and College\nHello! I'm the **Sylhet Technical School and College AI assistant**. How can I assist you today?",
+  "hello": "# Greetings\nHello! I'm the **Sylhet Technical School and College AI assistant**. How can I assist you today?",
+  "who made you": "# About My Creator\nThis AI was created by **Naeem Ahmed** for an innovation project at **Sylhet Technical School and College**.",
+  "who created you": "# My Origin\nThis AI was developed by **Naeem Ahmed** as part of an innovation project at **Sylhet Technical School and College**.",
+  "who are you": "# About Me\nI'm an AI assistant for **Sylhet Technical School and College**, created by **Naeem Ahmed** for an innovation project.",
+  "what is your purpose": "# My Purpose\nI'm designed to help students and visitors get information about **Sylhet Technical School and College**, created by **Naeem Ahmed** as an innovation project."
 };
 
 const ChatInputSchema = z.object({
@@ -31,7 +31,7 @@ const ChatInputSchema = z.object({
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const ChatOutputSchema = z.object({
-  response: z.string().describe('The AI\'s response to the user\'s message.'),
+  response: z.string().describe('The AI\'s response to the user\'s message, formatted in markdown.'),
 });
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
@@ -58,7 +58,7 @@ export async function getChatResponse(
       }
     }
 
-    // If no direct match, use Groq API
+    // If no direct match, use Groq API with markdown formatting
     const systemPrompt = `You are a helpful AI assistant for Sylhet Technical School and College, created by Naeem Ahmed for an innovation project.
 
 Available information:
@@ -66,6 +66,13 @@ ${Object.entries(ragData).map(([key, value]) => `- When asked "${key}": ${value}
 
 If the user's question is not covered by the available information, politely say that you do not have that specific information about Sylhet Technical School and College, but offer to help with other questions you might be able to answer.
 
+Format your response in markdown. Use:
+- # for main headings
+- ## for subheadings
+- **bold** for emphasis
+- *italic* for secondary emphasis
+- - for unordered lists
+- 1. for ordered lists
 Keep your responses helpful, friendly, and focused on the school context.`;
 
     const chatCompletion = await groq.chat.completions.create({
@@ -79,13 +86,13 @@ Keep your responses helpful, friendly, and focused on the school context.`;
           content: input.prompt
         }
       ],
-      model: "llama-3.1-8b-instant", // Free Groq model - fast and efficient
+      model: "llama-3.1-8b-instant",
       temperature: 0.7,
       max_tokens: 1000,
     });
 
     const response = chatCompletion.choices[0]?.message?.content || 
-      "I apologize, but I'm having trouble processing your request right now. Please try again.";
+      "# Error\nI apologize, but I'm having trouble processing your request right now. Please try again.";
 
     return {
       response: response
@@ -105,7 +112,7 @@ Keep your responses helpful, friendly, and focused on the school context.`;
     }
     
     return {
-      response: "I'm sorry, I'm experiencing technical difficulties right now. Please try again later or contact the school directly for assistance."
+      response: "# Technical Issue\nI'm sorry, I'm experiencing technical difficulties right now. Please try again later or contact the school directly for assistance."
     };
   }
 }
