@@ -11,12 +11,12 @@ import { Card, CardContent } from './ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
-
+import ChatView from './ChatView';
 
 function svgToPngDataUri(svgString: string, width: number, height: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-t' });
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -51,11 +51,14 @@ const CustomEditorEvents = () => {
   return null;
 }
 
+export type AppMode = 'doodle' | 'llm';
+
 export default function DoodleSolve() {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [result, setResult] = useState<SolutionResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [appMode, setAppMode] = useState<AppMode>('doodle');
   const { toast } = useToast();
   const { theme } = useTheme();
 
@@ -133,42 +136,69 @@ export default function DoodleSolve() {
   }, [editor]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-8">
-      <div className={cn(
-        "flex flex-col gap-4 h-full transition-all duration-300",
-        isFullscreen ? "fixed inset-0 z-50 bg-background p-4" : "relative"
-      )}>
-        <Card className="overflow-hidden shadow-lg border-2 border-primary/20 flex-grow flex flex-col">
-          <CardContent className="p-0 flex-grow">
-            <div className="w-full h-full min-h-[500px]">
-              <Tldraw onMount={(editor) => setEditor(editor)} persistenceKey='doodle-solve-canvas'>
-                <CustomEditorEvents />
-              </Tldraw>
+    <>
+      <div className={cn("transition-opacity duration-300", appMode === 'doodle' ? 'opacity-100' : 'opacity-0 hidden')}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-8">
+          <div className={cn(
+            "flex flex-col gap-4 h-full transition-all duration-300",
+            isFullscreen ? "fixed inset-0 z-50 bg-background p-4" : "relative"
+          )}>
+            <Card className="overflow-hidden shadow-lg border-2 border-primary/20 flex-grow flex flex-col">
+              <CardContent className="p-0 flex-grow">
+                <div className="w-full h-full min-h-[500px]">
+                  <Tldraw onMount={(editor) => setEditor(editor)} persistenceKey='doodle-solve-canvas'>
+                    <CustomEditorEvents />
+                  </Tldraw>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="flex justify-end gap-2 sm:gap-4">
+              <Button variant="outline" onClick={() => setIsFullscreen(!isFullscreen)} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
+                {isFullscreen ? <Minimize /> : <Maximize />}
+                <span className='hidden sm:inline ml-2'>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+              </Button>
+              <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
+                <Trash2 />
+                <span className='hidden sm:inline ml-2'>Clear</span>
+              </Button>
+              <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105 bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                <Wand className="mr-0 sm:mr-2" />
+                <span className='hidden sm:inline'>{isLoading ? 'Solving...' : 'Solve'}</span>
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-        <div className="flex justify-end gap-2 sm:gap-4">
-           <Button variant="outline" onClick={() => setIsFullscreen(!isFullscreen)} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
-            {isFullscreen ? <Minimize /> : <Maximize />}
-            <span className='hidden sm:inline ml-2'>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
-          </Button>
-          <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
-            <Trash2 />
-            <span className='hidden sm:inline ml-2'>Clear</span>
-          </Button>
-          <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105 bg-gradient-to-r from-primary to-accent text-primary-foreground">
-            <Wand className="mr-0 sm:mr-2" />
-            <span className='hidden sm:inline'>{isLoading ? 'Solving...' : 'Solve'}</span>
-          </Button>
+          </div>
+
+          <div className={cn("w-full", isFullscreen ? "hidden" : "block")}>
+            <SolutionDisplay
+              isLoading={isLoading}
+              result={result}
+            />
+          </div>
         </div>
       </div>
 
-      <div className={cn("w-full", isFullscreen ? "hidden" : "block")}>
-        <SolutionDisplay
-          isLoading={isLoading}
-          result={result}
-        />
+      <div className={cn("transition-opacity duration-300", appMode === 'llm' ? 'opacity-100' : 'opacity-0 hidden')}>
+        <ChatView />
       </div>
-    </div>
+
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <div className="flex items-center gap-2 p-1.5 bg-background/80 backdrop-blur-md rounded-full shadow-lg border">
+          <Button
+            variant={appMode === 'doodle' ? 'default' : 'ghost'}
+            className="rounded-full"
+            onClick={() => setAppMode('doodle')}
+          >
+            DoodleSolve
+          </Button>
+          <Button
+            variant={appMode === 'llm' ? 'default' : 'ghost'}
+            className="rounded-full"
+            onClick={() => setAppMode('llm')}
+          >
+            LLM Chat
+          </Button>
+        </div>
+      </div>
+    </>
   );
 }

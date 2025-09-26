@@ -1,6 +1,7 @@
 'use server';
 
 import { solveDrawnEquation } from '@/ai/flows/solve-drawn-equation';
+import { getChatResponse as getChatResponseFlow } from '@/ai/flows/chat-flow';
 
 export interface SolutionResult {
   interpretedEquation?: string;
@@ -21,5 +22,16 @@ export async function getSolution(photoDataUri: string): Promise<SolutionResult>
     console.error(e);
     const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred.';
     return { error: `An error occurred during processing: ${errorMessage}` };
+  }
+}
+
+export async function getChatResponse(prompt: string): Promise<string> {
+  try {
+    const { response } = await getChatResponseFlow({ prompt });
+    return response;
+  } catch (e) {
+    console.error(e);
+    const errorMessage = e instanceof Error ? e.message : 'An unexpected error occurred.';
+    return `An error occurred during processing: ${errorMessage}`;
   }
 }
