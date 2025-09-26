@@ -5,11 +5,12 @@ import '@tldraw/tldraw/tldraw.css';
 import { useState, useCallback } from 'react';
 import { getSolution, type SolutionResult } from '@/app/actions';
 import { Button } from '@/components/ui/button';
-import { Wand, Trash2 } from 'lucide-react';
+import { Wand, Trash2, Maximize, Minimize } from 'lucide-react';
 import SolutionDisplay from './SolutionDisplay';
 import { Card, CardContent } from './ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 
 
 function svgToPngDataUri(svgString: string, width: number, height: number): Promise<string> {
@@ -54,6 +55,7 @@ export default function DoodleSolve() {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [result, setResult] = useState<SolutionResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
 
@@ -115,8 +117,11 @@ export default function DoodleSolve() {
       });
     } finally {
       setIsLoading(false);
+      if (isFullscreen) {
+        setIsFullscreen(false);
+      }
     }
-  }, [editor, toast, theme]);
+  }, [editor, toast, theme, isFullscreen]);
 
   const handleClear = useCallback(() => {
     if (!editor) return;
@@ -129,7 +134,10 @@ export default function DoodleSolve() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 items-start gap-8">
-      <div className="flex flex-col gap-4 h-full">
+      <div className={cn(
+        "flex flex-col gap-4 h-full transition-all duration-300",
+        isFullscreen ? "fixed inset-0 z-50 bg-background p-4" : "relative"
+      )}>
         <Card className="overflow-hidden shadow-lg border-2 border-primary/20 flex-grow flex flex-col">
           <CardContent className="p-0 flex-grow">
             <div className="w-full h-full min-h-[500px]">
@@ -140,6 +148,10 @@ export default function DoodleSolve() {
           </CardContent>
         </Card>
         <div className="flex justify-end gap-2 sm:gap-4">
+           <Button variant="outline" onClick={() => setIsFullscreen(!isFullscreen)} disabled={isLoading} className="text-lg py-6 px-4 sm:px-8 rounded-full shadow-md transition-transform hover:scale-105">
+            {isFullscreen ? <Minimize /> : <Maximize />}
+            <span className='hidden sm:inline ml-2'>{isFullscreen ? 'Minimize' : 'Fullscreen'}</span>
+          </Button>
           <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-4 sm:px-8 rounded-full shadow-md transition-transform hover:scale-105">
             <Trash2 />
             <span className='hidden sm:inline ml-2'>Clear</span>
@@ -151,7 +163,7 @@ export default function DoodleSolve() {
         </div>
       </div>
 
-      <div className="w-full">
+      <div className={cn("w-full", isFullscreen ? "hidden" : "block")}>
         <SolutionDisplay
           isLoading={isLoading}
           result={result}

@@ -1,9 +1,10 @@
 import { Logo } from "./icons/logo";
 import { ThemeToggle } from "./ThemeToggle";
+import { cn } from "@/lib/utils";
 
-export default function Header() {
+export default function Header({ className }: { className?: string }) {
   return (
-    <header className="p-4 sm:p-6 md:p-8 flex justify-between items-start">
+    <header className={cn("p-4 sm:p-6 md:p-8 flex justify-between items-start", className)}>
       <div className="flex items-center gap-4">
         <div className="bg-primary text-primary-foreground p-3 rounded-full shadow-lg">
           <Logo className="w-8 h-8" />
