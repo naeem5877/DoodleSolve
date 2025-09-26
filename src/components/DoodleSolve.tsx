@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 function svgToPngDataUri(svgString: string, width: number, height: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-t' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -118,7 +118,7 @@ export default function DoodleSolve() {
     } finally {
       setIsLoading(false);
       if (isFullscreen) {
-        setIsFullscreen(false);
+        // We keep it in fullscreen after solving on purpose for better UX
       }
     }
   }, [editor, toast, theme, isFullscreen]);
@@ -133,7 +133,7 @@ export default function DoodleSolve() {
   }, [editor]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 items-start gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-8">
       <div className={cn(
         "flex flex-col gap-4 h-full transition-all duration-300",
         isFullscreen ? "fixed inset-0 z-50 bg-background p-4" : "relative"
@@ -148,15 +148,15 @@ export default function DoodleSolve() {
           </CardContent>
         </Card>
         <div className="flex justify-end gap-2 sm:gap-4">
-           <Button variant="outline" onClick={() => setIsFullscreen(!isFullscreen)} disabled={isLoading} className="text-lg py-6 px-4 sm:px-8 rounded-full shadow-md transition-transform hover:scale-105">
+           <Button variant="outline" onClick={() => setIsFullscreen(!isFullscreen)} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
             {isFullscreen ? <Minimize /> : <Maximize />}
-            <span className='hidden sm:inline ml-2'>{isFullscreen ? 'Minimize' : 'Fullscreen'}</span>
+            <span className='hidden sm:inline ml-2'>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
           </Button>
-          <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-4 sm:px-8 rounded-full shadow-md transition-transform hover:scale-105">
+          <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
             <Trash2 />
             <span className='hidden sm:inline ml-2'>Clear</span>
           </Button>
-          <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-4 sm:px-8 rounded-full shadow-md transition-transform hover:scale-105 bg-gradient-to-r from-primary to-accent text-primary-foreground">
+          <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105 bg-gradient-to-r from-primary to-accent text-primary-foreground">
             <Wand className="mr-0 sm:mr-2" />
             <span className='hidden sm:inline'>{isLoading ? 'Solving...' : 'Solve'}</span>
           </Button>
