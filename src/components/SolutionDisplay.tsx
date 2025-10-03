@@ -8,6 +8,9 @@ import type { SolutionResult } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import { ReactNode } from 'react';
 
 const LoadingDisplay = () => (
   <Card className="flex flex-col items-center justify-center text-center p-8 h-full min-h-[300px] shadow-lg bg-card/80 backdrop-blur-sm">
@@ -86,9 +89,36 @@ export default function SolutionDisplay({ isLoading, result }: { isLoading: bool
             <CardTitle className="text-xl font-semibold">Response</CardTitle>
           </CardHeader>
           <CardContent className="markdown-content">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {solutionText}
-            </ReactMarkdown>
+            <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:leading-relaxed prose-pre:bg-muted prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+                components={{
+                  h1: ({node, ...props}) => <h1 className="text-3xl font-bold mt-6 mb-4" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="text-2xl font-bold mt-5 mb-3" {...props} />,
+                  h3: ({node, ...props}) => <h3 className="text-xl font-semibold mt-4 mb-2" {...props} />,
+                  h4: ({node, ...props}) => <h4 className="text-lg font-semibold mt-3 mb-2" {...props} />,
+                  p: ({node, ...props}) => <p className="my-3 leading-7" {...props} />,
+                  ul: ({node, ...props}) => <ul className="my-3 ml-6 list-disc space-y-2" {...props} />,
+                  ol: ({node, ...props}) => <ol className="my-3 ml-6 list-decimal space-y-2" {...props} />,
+                  li: ({node, ...props}) => <li className="leading-7" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />,
+                  code: ({node, inline, ...props}: any) => 
+                    inline ? (
+                      <code className="bg-muted text-primary px-1.5 py-0.5 rounded text-sm font-mono" {...props} />
+                    ) : (
+                      <code className="block bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono" {...props} />
+                    ),
+                  pre: ({node, ...props}) => <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-4" {...props} />,
+                  blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-primary pl-4 italic my-4" {...props} />,
+                  table: ({node, ...props}) => <div className="overflow-x-auto my-4"><table className="min-w-full divide-y divide-border" {...props} /></div>,
+                  th: ({node, ...props}) => <th className="px-4 py-2 bg-muted font-semibold text-left" {...props} />,
+                  td: ({node, ...props}) => <td className="px-4 py-2 border-t border-border" {...props} />,
+                }}
+              >
+                {solutionText}
+              </ReactMarkdown>
+            </div>
             {showSolutionCursor && <span className="inline-block w-0.5 h-5 bg-foreground align-middle typewriter-cursor ml-1" />}
           </CardContent>
         </Card>
