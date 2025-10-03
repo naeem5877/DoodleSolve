@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback } from './ui/avatar';
 import { Bot, User, Send, BrainCircuit } from 'lucide-react';
 import { getChatResponse } from '@/app/actions';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import Latex from 'react-latex-next';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -112,20 +114,11 @@ export default function ChatView() {
               >
                 {message.role === 'assistant' ? (
                   <div className="text-sm leading-relaxed markdown-content">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({ node, ...props }) => <h1 className="text-xl font-bold mt-2 mb-1" {...props} />,
-                        h2: ({ node, ...props }) => <h2 className="text-lg font-semibold mt-2 mb-1" {...props} />,
-                        strong: ({ node, ...props }) => <strong className="font-bold" {...props} />,
-                        em: ({ node, ...props }) => <em className="italic" {...props} />,
-                        ul: ({ node, ...props }) => <ul className="list-disc pl-5 my-1" {...props} />,
-                        ol: ({ node, ...props }) => <ol className="list-decimal pl-5 my-1" {...props} />,
-                        li: ({ node, ...props }) => <li className="my-0.5" {...props} />,
-                        p: ({ node, ...props }) => <p className="my-0.5" {...props} />,
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
+                    <Latex>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {message.content}
+                      </ReactMarkdown>
+                    </Latex>
                   </div>
                 ) : (
                   <p className="text-sm leading-relaxed">{message.content}</p>
