@@ -114,11 +114,9 @@ export default function ChatView() {
               >
                 {message.role === 'assistant' ? (
                   <div className="text-sm leading-relaxed markdown-content">
-                    <Latex>
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {message.content}
-                      </ReactMarkdown>
-                    </Latex>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {message.content}
+                    </ReactMarkdown>
                   </div>
                 ) : (
                   <p className="text-sm leading-relaxed">{message.content}</p>

@@ -86,11 +86,9 @@ export default function SolutionDisplay({ isLoading, result }: { isLoading: bool
             <CardTitle className="text-xl font-semibold">Response</CardTitle>
           </CardHeader>
           <CardContent className="markdown-content">
-            <Latex>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {solutionText}
-              </ReactMarkdown>
-            </Latex>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {solutionText}
+            </ReactMarkdown>
             {showSolutionCursor && <span className="inline-block w-0.5 h-5 bg-foreground align-middle typewriter-cursor ml-1" />}
           </CardContent>
         </Card>
