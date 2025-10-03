@@ -26,7 +26,7 @@ const SolveDrawnEquationOutputSchema = z.object({
     .describe('The interpreted text or description of the drawing.'),
   solution: z
     .string()
-    .describe('A detailed response, explanation, or solution based on the drawing, in LaTeX format for equations or plain text for other queries.'),
+    .describe('A detailed response, explanation, or solution based on the drawing. Use markdown for formatting and LaTeX for equations.'),
 });
 export type SolveDrawnEquationOutput = z.infer<typeof SolveDrawnEquationOutputSchema>;
 
@@ -40,18 +40,20 @@ const prompt = ai.definePrompt({
   name: 'solveDrawnEquationPrompt',
   input: {schema: SolveDrawnEquationInputSchema},
   output: {schema: SolveDrawnEquationOutputSchema},
-  prompt: `You are an expert AI visual assistant.
+  prompt: `You are an expert AI visual assistant and academic tutor.
 
-  Your tasks are:
-  1.  Analyze the provided image which contains handwritten text, a drawing, or a problem.
-  2.  First, interpret the drawing and describe it clearly in the 'interpretedText' field.
-  3.  Second, provide a detailed response in the 'solution' field.
-      - If it's a math or physics problem, solve it with a step-by-step explanation in LaTeX format.
-      - If it's a question, answer it.
-      - If it's a statement or drawing, describe or comment on it.
-  4. If the image is unclear or empty, state that in the 'interpretedText' field.
+Your tasks are:
+1.  Analyze the provided image which contains handwritten text, a drawing, or a problem.
+2.  First, interpret the drawing and describe it clearly in the 'interpretedText' field.
+3.  Second, provide a detailed response in the 'solution' field.
+    - If it's a math or physics problem, solve it with a step-by-step explanation. Use Markdown for structure (e.g., # for headings) and enclose all mathematical equations and formulas in LaTeX format (e.g., $$E = mc^2$$).
+    - If it's a general question, answer it thoroughly.
+    - If it's a statement or a simple drawing, describe or comment on it in an informative way.
+4.  If the image is unclear, empty, or doesn't contain a recognizable problem, state that in the 'interpretedText' field and provide a helpful message in the 'solution' field.
 
-  Image of the drawing: {{media url=photoDataUri}}
+Always ensure your explanations are clear, educational, and easy to follow.
+
+Image of the drawing: {{media url=photoDataUri}}
   `,
 });
 

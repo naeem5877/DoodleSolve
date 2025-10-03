@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import type { SolutionResult } from '@/app/actions';
 import { useTypewriter } from '@/hooks/use-typewriter';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const LoadingDisplay = () => (
   <Card className="flex flex-col items-center justify-center text-center p-8 h-full min-h-[300px] shadow-lg bg-card/80 backdrop-blur-sm">
@@ -33,7 +35,6 @@ export default function SolutionDisplay({ isLoading, result }: { isLoading: bool
   const solutionText = useTypewriter(result?.solutionLaTeX ?? '', 20);
   const showSolutionCursor = result?.solutionLaTeX ? result.solutionLaTeX.length === solutionText.length : false;
   const showInterpretedCursor = result?.interpretedEquation ? result.interpretedEquation.length === interpretedText.length : false;
-
 
   if (isLoading) {
     return <LoadingDisplay />;
@@ -84,8 +85,12 @@ export default function SolutionDisplay({ isLoading, result }: { isLoading: bool
           <CardHeader>
             <CardTitle className="text-xl font-semibold">Response</CardTitle>
           </CardHeader>
-          <CardContent className="prose prose-lg max-w-none">
-            <Latex>{solutionText}</Latex>
+          <CardContent className="markdown-content">
+            <Latex>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {solutionText}
+              </ReactMarkdown>
+            </Latex>
             {showSolutionCursor && <span className="inline-block w-0.5 h-5 bg-foreground align-middle typewriter-cursor ml-1" />}
           </CardContent>
         </Card>
