@@ -5,9 +5,9 @@ import '@tldraw/tldraw/tldraw.css';
 import { useState, useCallback } from 'react';
 import { getSolution, type SolutionResult } from '@/app/actions';
 import { Button } from '@/components/ui/button';
-import { Wand, Trash2, Maximize, Minimize } from 'lucide-react';
+import { Wand, Trash2, Maximize, Minimize, Eraser, Pencil } from 'lucide-react';
 import SolutionDisplay from './SolutionDisplay';
-import { Card, CardContent } from './ui/card';
+import { Card } from './ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,7 @@ import ChatView from './ChatView';
 function svgToPngDataUri(svgString: string, width: number, height: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-t' });
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
@@ -82,24 +82,22 @@ export default function DoodleSolve({ appMode }: { appMode: AppMode }) {
       if (!viewport) {
         throw new Error('Failed to get viewport bounds.');
       }
-      
-      const svg = await editor.getSvg(shapes, {
+
+      const svgResult = await editor.getSvgString(shapes, {
         scale: 1,
-        background: true,
-        darkMode: theme === 'dark',
+        background: theme === 'dark' ? '#09090b' : '#ffffff',
       });
 
-      if (!svg) {
+      if (!svgResult || !svgResult.svg) {
         throw new Error('Failed to capture drawing.');
       }
 
-      const svgString = new XMLSerializer().serializeToString(svg);
-      const pngDataUri = await svgToPngDataUri(svgString, viewport.w, viewport.h);
-      
+      const pngDataUri = await svgToPngDataUri(svgResult.svg, viewport.w, viewport.h);
+
       const solutionResult = await getSolution(pngDataUri);
-      
+
       if (solutionResult.error) {
-         setResult({ error: solutionResult.error });
+        setResult({ error: solutionResult.error });
         toast({
           title: "Error",
           description: solutionResult.error,
@@ -119,55 +117,80 @@ export default function DoodleSolve({ appMode }: { appMode: AppMode }) {
       });
     } finally {
       setIsLoading(false);
-      if (isFullscreen) {
-        // We keep it in fullscreen after solving on purpose for better UX
-      }
     }
-  }, [editor, toast, theme, isFullscreen]);
+  }, [editor, toast, theme]);
 
   const handleClear = useCallback(() => {
     if (!editor) return;
     const shapes = editor.getCurrentPageShapes();
     if (shapes.length > 0) {
-       editor.deleteShapes(shapes.map(s => s.id));
+      editor.deleteShapes(shapes.map(s => s.id));
     }
     setResult(null);
   }, [editor]);
 
   return (
     <>
-      <div className={cn("transition-opacity duration-300", appMode === 'doodle' ? 'opacity-100' : 'opacity-0 hidden')}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-8">
+      <div className={cn("transition-opacity duration-500", appMode === 'doodle' ? 'opacity-100' : 'opacity-0 hidden')}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-8 h-full">
+
+          {/* Left Column: Canvas & Controls */}
           <div className={cn(
-            "flex flex-col gap-4 h-full transition-all duration-300",
-            isFullscreen ? "fixed inset-0 z-50 bg-background p-4" : "relative"
+            "flex flex-col gap-4 h-full transition-all duration-500 ease-in-out",
+            isFullscreen ? "fixed inset-0 z-50 bg-background p-4" : "relative min-h-[600px]"
           )}>
-            <Card className="overflow-hidden shadow-lg border-2 border-primary/20 flex-grow flex flex-col">
-              <CardContent className="p-0 flex-grow">
-                <div className="w-full h-full min-h-[500px]">
-                  <Tldraw onMount={(editor) => setEditor(editor)} persistenceKey='doodle-solve-canvas'>
-                    <CustomEditorEvents />
-                  </Tldraw>
-                </div>
-              </CardContent>
+            <Card className="flex-grow overflow-hidden shadow-sm border border-border/50 rounded-3xl bg-card relative group">
+              <div className="absolute inset-0">
+                <Tldraw
+                  onMount={(editor) => setEditor(editor)}
+                  persistenceKey='doodle-solve-canvas'
+                  hideUi={false}
+                >
+                  <CustomEditorEvents />
+                </Tldraw>
+              </div>
             </Card>
-            <div className="flex justify-end gap-2 sm:gap-4">
-              <Button variant="outline" onClick={() => setIsFullscreen(!isFullscreen)} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
-                {isFullscreen ? <Minimize /> : <Maximize />}
-                <span className='hidden sm:inline ml-2'>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
-              </Button>
-              <Button variant="outline" onClick={handleClear} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105">
-                <Trash2 />
-                <span className='hidden sm:inline ml-2'>Clear</span>
-              </Button>
-              <Button onClick={handleSolve} disabled={isLoading} className="text-lg py-6 px-4 rounded-full shadow-md transition-transform hover:scale-105 bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                <Wand className="mr-0 sm:mr-2" />
-                <span className='hidden sm:inline'>{isLoading ? 'Solving...' : 'Solve'}</span>
+
+            {/* Floating Action Bar */}
+            <div className="flex items-center justify-between bg-card/80 backdrop-blur-md border border-border/50 p-2 rounded-2xl shadow-sm mx-auto max-w-2xl w-full">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                  title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                >
+                  {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClear}
+                  className="rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                  title="Clear Canvas"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <Button
+                onClick={handleSolve}
+                disabled={isLoading}
+                className={cn(
+                  "rounded-xl px-6 font-medium transition-all duration-300 shadow-sm hover:shadow-md",
+                  "bg-primary text-primary-foreground hover:bg-primary/90",
+                  isLoading && "opacity-80 cursor-wait"
+                )}
+              >
+                <Wand className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
+                {isLoading ? 'Solving...' : 'Solve Magic'}
               </Button>
             </div>
           </div>
 
-          <div className={cn("w-full", isFullscreen ? "hidden" : "block")}>
+          {/* Right Column: Solution Display */}
+          <div className={cn("w-full h-full", isFullscreen ? "hidden" : "block")}>
             <SolutionDisplay
               isLoading={isLoading}
               result={result}

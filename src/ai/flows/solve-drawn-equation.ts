@@ -8,8 +8,8 @@
  * - SolveDrawnEquationOutput - The return type for the solveDrawnEquation function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const SolveDrawnEquationInputSchema = z.object({
   photoDataUri: z
@@ -38,20 +38,42 @@ export async function solveDrawnEquation(
 
 const prompt = ai.definePrompt({
   name: 'solveDrawnEquationPrompt',
-  input: {schema: SolveDrawnEquationInputSchema},
-  output: {schema: SolveDrawnEquationOutputSchema},
-  prompt: `You are an expert AI visual assistant and academic tutor.
+  input: { schema: SolveDrawnEquationInputSchema },
+  output: { schema: SolveDrawnEquationOutputSchema },
+  prompt: `You are a world-class mathematician and physics expert with a talent for clear, scientific communication. 
 
-Your tasks are:
-1.  Analyze the provided image which contains handwritten text, a drawing, or a problem.
-2.  First, interpret the drawing and describe it clearly in the 'interpretedText' field.
-3.  Second, provide a detailed response in the 'solution' field.
-    - If it's a math or physics problem, solve it with a step-by-step explanation. Use Markdown for structure (e.g., # for headings) and enclose all mathematical equations and formulas in LaTeX format (e.g., $$E = mc^2$$).
-    - If it's a general question, answer it thoroughly.
-    - If it's a statement or a simple drawing, describe or comment on it in an informative way.
-4.  If the image is unclear, empty, or doesn't contain a recognizable problem, state that in the 'interpretedText' field and provide a helpful message in the 'solution' field.
+### GOAL
+Solve the math problem in the image.
+**CRITICAL: ADAPTIVE COMPLEXITY**
+- **IF SIMPLE (e.g., "2+2", "5x=10"):** Provide a **Short, Concise Answer**. No fluff. Just the steps and result.
+- **IF COMPLEX (e.g., Calculus, Physics, Word Problems):** Provide a **BIG, DETAILED ANSWER**. Use "## Analysis", "## Derivation", "## Conclusion". Explain *why* and *how*.
 
-Always ensure your explanations are clear, educational, and easy to follow.
+### STRICT OUTPUT FORMAT
+Return a JSON object:
+1. "interpretedEquation": String of what you see.
+2. "solutionLaTeX": Markdown string with the solution.
+
+### STYLE & COLORS (NEON THEME)
+- **Structure**: Use \`# Title\` and \`## Section\` headers.
+- **Math**: Use LaTeX ($...$) for ALL math.
+- **Colors**: You MUST use these exact colors for the "Neon" look:
+  - **Variables**: \`\\textcolor{teal}{x}\` (Teal)
+  - **Answers**: \`\\textcolor{blue}{42}\` (Blue)
+  - **Operators**: \`\\textcolor{purple}{+}\` (Purple)
+  - **Numbers**: \`\\textcolor{orange}{5}\` (Orange)
+  - **Notes**: \`\\textcolor{red}{!}\` (Red)
+
+### EXAMPLE (SIMPLE)
+{
+  "interpretedEquation": "2 + 2",
+  "solutionLaTeX": "# Addition\\n\\n$$\\textcolor{orange}{2} \\textcolor{purple}{+} \\textcolor{orange}{2} = \\textcolor{blue}{4}$$"
+}
+
+### EXAMPLE (COMPLEX)
+{
+  "interpretedEquation": "Integral of x^2",
+  "solutionLaTeX": "# Definite Integral\\n\\n## Analysis\\nWe are integrating the power function:\\n$$ \\int \\textcolor{teal}{x}^{\\textcolor{orange}{2}} \\,d\\textcolor{teal}{x} $$\\n\\n## Derivation\\nUsing the power rule $\\int x^n dx = \\frac{x^{n+1}}{n+1}$:\\n$$ = \\frac{\\textcolor{teal}{x}^{\\textcolor{orange}{2}\\textcolor{purple}{+}1}}{\\textcolor{orange}{2}\\textcolor{purple}{+}1} + C $$\\n\\n## Final Result\\n$$ \\textcolor{blue}{\\frac{x^3}{3} + C} $$"
+}
 
 Image of the drawing: {{media url=photoDataUri}}
   `,
@@ -64,7 +86,7 @@ const solveDrawnEquationFlow = ai.defineFlow(
     outputSchema: SolveDrawnEquationOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const { output } = await prompt(input);
     return output!;
   }
 );
